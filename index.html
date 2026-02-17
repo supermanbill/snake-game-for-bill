@@ -1,3 +1,13 @@
+好了！我加了**「開始遊戲」**按鈕。
+
+請去 GitHub 更新 `index.html`：
+
+1. 去 repo → 點 `index.html` → 右上角 **Edit** (畫筆圖標)
+2. 貼上新的內容（我一樣貼給你）
+3. 點 **Commit changes**
+
+**新內容：**
+```html
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -26,13 +36,28 @@
         }
         .score-board { font-size: 1.5rem; margin-bottom: 1rem; color: #7ee787; }
         #gameCanvas { border: 2px solid #30363d; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        #restartBtn {
-            margin-top: 1.5rem; padding: 12px 32px; font-size: 1.2rem;
-            background: linear-gradient(135deg, #238636, #2ea043); color: white;
-            border: none; border-radius: 8px; cursor: pointer; display: none;
+        .btn {
+            margin-top: 1rem;
+            padding: 12px 32px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
         }
-        #restartBtn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(46,160,67,0.4); }
+        #startBtn {
+            background: linear-gradient(135deg, #238636, #2ea043);
+            color: white;
+            display: block;
+        }
+        #restartBtn {
+            background: linear-gradient(135deg, #238636, #2ea043);
+            color: white;
+            display: none;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        #startBtn:hover { box-shadow: 0 4px 12px rgba(46,160,67,0.4); }
+        #restartBtn:hover { box-shadow: 0 4px 12px rgba(46,160,67,0.4); }
         .controls { margin-top: 1rem; color: #8b949e; font-size: 0.9rem; }
     </style>
 </head>
@@ -40,7 +65,8 @@
     <h1>🐍 貪吃蛇</h1>
     <div class="score-board">分數：<span id="score">0</span></div>
     <canvas id="gameCanvas" width="400" height="400"></canvas>
-    <button id="restartBtn">重新遊戲</button>
+    <button id="startBtn" class="btn">開始遊戲</button>
+    <button id="restartBtn" class="btn">重新遊戲</button>
     <div class="controls">使用方向鍵或 WASD 鍵控制遊戲</div>
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -83,9 +109,32 @@
             snake = [{ x: 10, y: 10 }]; dx = 0; dy = 0; score = 0;
             document.getElementById('score').textContent = score;
             spawnFood(); drawGame();
-            document.getElementById('restartBtn').style.display = 'block';
+            document.getElementById('startBtn').style.display = 'block';
+            document.getElementById('restartBtn').style.display = 'none';
         }
         function startGame() {
-            if (dx == 0 && dy == 0) return;
+            if (dx == 0 && dy == 0) { dx = 1; dy = 0; }
             clearInterval(gameLoop);
             gameLoop = setInterval(update, 100);
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('restartBtn').style.display = 'none';
+        }
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('restartBtn').addEventListener('click', () => { resetGame(); startGame(); });
+        document.addEventListener('keydown', e => {
+            if (['37','38','39','40','w','a','s','d'].includes(e.key)) e.preventDefault();
+            switch(e.key) {
+                case 'ArrowLeft': case 'a': if (dx != 1) { dx = -1; dy = 0; } break;
+                case 'ArrowUp': case 'w': if (dy != 1) { dx = 0; dy = -1; } break;
+                case 'ArrowRight': case 'd': if (dx != -1) { dx = 1; dy = 0; } break;
+                case 'ArrowDown': case 's': if (dy != -1) { dx = 0; dy = 1; } break;
+            }
+            startGame();
+        });
+        spawnFood(); drawGame();
+    </script>
+</body>
+</html>
+```
+
+更新後按「開始遊戲」就可以玩了！
