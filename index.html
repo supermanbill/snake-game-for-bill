@@ -2,8 +2,8 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>貪吃蛇 Snake</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🐍 貪吃蛇 Snake</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -12,52 +12,126 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
+            padding-top: 10px;
             font-family: 'Segoe UI', system-ui, sans-serif;
             color: #e6edf3;
+            touch-action: none;
+            overflow-x: hidden;
         }
         h1 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
             background: linear-gradient(135deg, #58a6ff, #a371f7);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        .score-board { font-size: 1.5rem; margin-bottom: 1rem; color: #7ee787; }
-        #gameCanvas { border: 2px solid #30363d; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .score-board { font-size: 1.2rem; margin-bottom: 5px; color: #7ee787; }
+        #gameCanvas { 
+            border: 2px solid #30363d; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            max-width: 95vw;
+            max-height: 45vh;
+        }
+        .btn-container {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
         .btn {
-            margin-top: 1rem;
-            padding: 12px 32px;
-            font-size: 1.2rem;
+            padding: 10px 24px;
+            font-size: 1rem;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.1s;
         }
         #startBtn {
             background: linear-gradient(135deg, #238636, #2ea043);
             color: white;
-            display: block;
         }
         #restartBtn {
-            background: linear-gradient(135deg, #238636, #2ea043);
+            background: linear-gradient(135deg, #da3633, #f85149);
             color: white;
             display: none;
         }
-        .btn:hover { transform: translateY(-2px); }
-        #startBtn:hover { box-shadow: 0 4px 12px rgba(46,160,67,0.4); }
-        #restartBtn:hover { box-shadow: 0 4px 12px rgba(46,160,67,0.4); }
-        .controls { margin-top: 1rem; color: #8b949e; font-size: 0.9rem; }
+        .btn:active { transform: scale(0.95); }
+        
+        /* 手機方向鍵樣式 - 永遠顯示 */
+        .mobile-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 15px;
+        }
+        
+        .d-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 70px);
+            grid-template-rows: repeat(2, 60px);
+            gap: 8px;
+        }
+        
+        .d-btn {
+            background: linear-gradient(135deg, #30363d, #21262d);
+            border: 2px solid #484f58;
+            border-radius: 15px;
+            color: #e6edf3;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .d-btn:active {
+            background: linear-gradient(135deg, #58a6ff, #388bfd);
+            transform: scale(0.95);
+        }
+        
+        .d-up { grid-column: 2; grid-row: 1; }
+        .d-left { grid-column: 1; grid-row: 2; }
+        .d-down { grid-column: 2; grid-row: 2; }
+        .d-right { grid-column: 3; grid-row: 2; }
+        
+        .controls-info {
+            margin-top: 10px;
+            color: #8b949e;
+            font-size: 0.8rem;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <h1>🐍 貪吃蛇</h1>
     <div class="score-board">分數：<span id="score">0</span></div>
+    
+    <div class="btn-container">
+        <button id="startBtn" class="btn">開始遊戲</button>
+        <button id="restartBtn" class="btn">重新遊戲</button>
+    </div>
+    
     <canvas id="gameCanvas" width="400" height="400"></canvas>
-    <button id="startBtn" class="btn">開始遊戲</button>
-    <button id="restartBtn" class="btn">重新遊戲</button>
-    <div class="controls">使用方向鍵或 WASD 鍵控制遊戲</div>
+    
+    <!-- 方向鍵控制 - 永遠顯示 -->
+    <div class="mobile-controls">
+        <div class="d-pad">
+            <button class="d-btn d-up" data-dir="up">⬆️</button>
+            <button class="d-btn d-left" data-dir="left">⬅️</button>
+            <button class="d-btn d-down" data-dir="down">⬇️</button>
+            <button class="d-btn d-right" data-dir="right">➡️</button>
+        </div>
+    </div>
+    
+    <div class="controls-info">
+        電腦：方向鍵 或 WASD<br>
+        手機：點擊上方按鈕
+    </div>
+    
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -77,6 +151,7 @@
             ctx.fillStyle = '#f85149';
             ctx.fillRect(food.x * GRID_SIZE, food.y * GRID_SIZE, GRID_SIZE - 2, GRID_SIZE - 2);
         }
+        
         function update() {
             const head = { x: snake[0].x + dx, y: snake[0].y + dy };
             if (head.x < 0 || head.x >= TILE_COUNT || head.y < 0 || head.y >= TILE_COUNT || snake.some(s => s.x == head.x && s.y == head.y)) {
@@ -90,41 +165,81 @@
             } else { snake.pop(); }
             drawGame();
         }
+        
         function spawnFood() {
             do { food.x = Math.floor(Math.random() * TILE_COUNT); food.y = Math.floor(Math.random() * TILE_COUNT); }
             while (snake.some(s => s.x == food.x && s.y == food.y));
         }
-        function gameOver() { clearInterval(gameLoop); alert('遊戲結束！最終分數: ' + score); resetGame(); }
+        
+        function gameOver() { 
+            clearInterval(gameLoop); 
+            alert('遊戲結束！最終分數: ' + score); 
+            resetGame(); 
+        }
+        
         function resetGame() {
-            snake = [{ x: 10, y: 10 }]; dx = 0; dy = 0; score = 0;
+            snake = [{ x: 10, y: 10 }]; 
+            dx = 0; dy = 0; score = 0;
             document.getElementById('score').textContent = score;
             spawnFood(); drawGame();
             document.getElementById('startBtn').style.display = 'block';
             document.getElementById('restartBtn').style.display = 'none';
         }
+        
         function startGame() {
             if (dx == 0 && dy == 0) { dx = 1; dy = 0; }
             clearInterval(gameLoop);
             gameLoop = setInterval(update, 100);
             document.getElementById('startBtn').style.display = 'none';
-            document.getElementById('restartBtn').style.display = 'none';
+            document.getElementById('restartBtn').style.display = 'block';
         }
+        
+        function changeDirection(newDx, newDy) {
+            if (dx !== -newDx || dy !== -newDy) {
+                dx = newDx;
+                dy = newDy;
+                startGame();
+            }
+        }
+        
         document.getElementById('startBtn').addEventListener('click', startGame);
         document.getElementById('restartBtn').addEventListener('click', () => { resetGame(); startGame(); });
+        
+        // 鍵盤控制
         document.addEventListener('keydown', e => {
             if (['37','38','39','40','w','a','s','d'].includes(e.key)) e.preventDefault();
             switch(e.key) {
-                case 'ArrowLeft': case 'a': if (dx != 1) { dx = -1; dy = 0; } break;
-                case 'ArrowUp': case 'w': if (dy != 1) { dx = 0; dy = -1; } break;
-                case 'ArrowRight': case 'd': if (dx != -1) { dx = 1; dy = 0; } break;
-                case 'ArrowDown': case 's': if (dy != -1) { dx = 0; dy = 1; } break;
+                case 'ArrowLeft': case 'a': changeDirection(-1, 0); break;
+                case 'ArrowUp': case 'w': changeDirection(0, -1); break;
+                case 'ArrowRight': case 'd': changeDirection(1, 0); break;
+                case 'ArrowDown': case 's': changeDirection(0, 1); break;
             }
-            startGame();
         });
+        
+        // 手機按鈕控制
+        document.querySelectorAll('.d-btn').forEach(btn => {
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const dir = btn.dataset.dir;
+                switch(dir) {
+                    case 'left': changeDirection(-1, 0); break;
+                    case 'up': changeDirection(0, -1); break;
+                    case 'right': changeDirection(1, 0); break;
+                    case 'down': changeDirection(0, 1); break;
+                }
+            });
+            btn.addEventListener('click', () => {
+                const dir = btn.dataset.dir;
+                switch(dir) {
+                    case 'left': changeDirection(-1, 0); break;
+                    case 'up': changeDirection(0, -1); break;
+                    case 'right': changeDirection(1, 0); break;
+                    case 'down': changeDirection(0, 1); break;
+                }
+            });
+        });
+        
         spawnFood(); drawGame();
     </script>
 </body>
 </html>
-```
-
-更新後按「開始遊戲」就可以玩了！
